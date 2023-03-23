@@ -9,3 +9,6 @@ or
 
 ## command line
 `convertfasta_multi2single input.fasta`
+
+### test run
+`convertfasta_multi2single test.fasta`
