@@ -6,7 +6,8 @@ Convert multi line fasta format to single line format in lightening speed.
     git clone https://github.com/yazhinia/convertfasta.git
     cd convertfasta
     bash build.sh or g++ -o convertfasta_multi2single convertfasta_multi2single.cpp
-
+    export PATH=$PATH:<path_to_converfasta_multi2single>
+    
 ## command line
 `convertfasta_multi2single input.fasta`
 
