@@ -16,10 +16,10 @@ bool condition_header(std::string &line) {
 }
 
 void get_complete_sequence(std::ifstream &fasta, std::string &line, std::string &sequence) {
-    fasta >> line;
+    getline(fasta,line);
     while (!condition_header(line) && !fasta.eof()) {
         sequence.append(line);
-        fasta >> line;
+        getline(fasta,line);
     }
 }
 
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
         }
 
         std::string line, sequence;
-        fasta >> line;
+        getline(fasta,line);
 
         unsigned int sequence_counter = 0;
         while (condition_header(line)) {
