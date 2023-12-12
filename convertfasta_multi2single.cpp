@@ -16,35 +16,46 @@ bool condition_header(std::string &line) {
 }
 
 void get_complete_sequence(std::ifstream &fasta, std::string &line, std::string &sequence) {
-    getline(fasta,line);
+    getline(fasta, line);
     while (!condition_header(line) && !fasta.eof()) {
         sequence.append(line);
-        getline(fasta,line);
+        getline(fasta, line);
     }
 }
 
 
 int main(int argc, char *argv[]) {
 
-    if(argc != 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
+    if(argc != 3 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
     {
-        std::cout << "provide input fasta file\n";
+        std::cout << "Usage: convertfasta_multi2single input.fasta output_directory";
         return EXIT_SUCCESS;
     }
     
     else {
         auto start = std::chrono::high_resolution_clock::now();
-        std::string contigs_sequences = argv[1]; 
-        // std::string dir = std::filesystem::current_path(); 
+        std::string contigs_sequences = argv[1];
+        auto pos = contigs_sequences.find_last_of ('/');
+        std::string outname;
+        if (pos != std::string::npos) {
+            outname = contigs_sequences.substr(pos+1);
+        } else {
+            outname = contigs_sequences;
+        }
+        std::string dir = argv[2];
         std::ifstream fasta(contigs_sequences);
-        std::ofstream outfile("single_" + contigs_sequences);
+        std::cout<<"Input file: " << contigs_sequences << "\n";
+        std::cout<<"Output directory: " << dir << "\n";
+        std::ofstream outfile(dir + "/single_" + outname);
+
         if (!fasta.is_open()) {
             std::cerr << "Error: Unable to open Fasta file!" << "\n";
             return 1;
         }
 
         std::string line, sequence;
-        getline(fasta,line);
+
+        getline(fasta, line);
 
         unsigned int sequence_counter = 0;
         while (condition_header(line)) {
