@@ -6,6 +6,8 @@
 #include <chrono>
 #include <filesystem>
 
+
+namespace fs = std::filesystem;
 bool condition_header(std::string &line) {
     if (line[0] == '>') {
         return true;
@@ -23,12 +25,11 @@ void get_complete_sequence(std::ifstream &fasta, std::string &line, std::string 
     }
 }
 
-
 int main(int argc, char *argv[]) {
 
-    if(argc != 3 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
+    if(argc < 3 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
     {
-        std::cout << "Usage: convertfasta_multi2single input.fasta output_directory";
+        std::cout << "Usage: convertfasta_multi2single input.fasta outdir min_length (optional, int) -l (print length, optional) \n";
         return EXIT_SUCCESS;
     }
     
@@ -42,7 +43,23 @@ int main(int argc, char *argv[]) {
         } else {
             outname = contigs_sequences;
         }
+    
         std::string dir = argv[2];
+        if (!fs::exists(dir)) {
+            if (!fs::create_directories(dir)) {
+                std::cerr << "Error: Unable to create output directory!" << "\n";
+                return 1;
+            }
+        }
+        unsigned int min_length = (argc > 3) ? std::stoi(argv[3]) : 0;
+        bool return_length = 0;
+        std::ofstream length_file(dir +"/contig_length");
+        for (int i = 1; i < argc; ++i) {
+            std::string arg = argv[i];
+            if (arg == "-l" && i  < argc) {
+                return_length = 1;
+            }
+        }
         std::ifstream fasta(contigs_sequences);
         std::cout<<"Input file: " << contigs_sequences << "\n";
         std::cout<<"Output directory: " << dir << "\n";
@@ -56,15 +73,30 @@ int main(int argc, char *argv[]) {
         std::string line, sequence;
 
         getline(fasta, line);
-
+        std::string header;
         unsigned int sequence_counter = 0;
         while (condition_header(line)) {
-            outfile << line << "\n";
+            header = line;
+           
+            // Find the start position, which is after '>'
+            size_t start_pos = line.find('>') + 1;
+
+            // Find the end position, which is the first space after the start position
+            size_t end_pos = line.find(' ', start_pos);
+
+            // Extract the substring
+            std::string seq_id = line.substr(start_pos, end_pos - start_pos);
             sequence = "";
             get_complete_sequence(fasta, line, sequence);
 
             if (!sequence.empty()) {
-                outfile << sequence << "\n";
+                if (sequence.length() >= min_length) {
+                    outfile << header << "\n";
+                    outfile << sequence << "\n";
+                    if (return_length==1) {
+                        length_file << seq_id << "\t" << sequence.length() << "\n";
+                    }
+                }
             }
             else {
                 std::cerr << "empty sequence for a header" << "\n";
@@ -73,7 +105,9 @@ int main(int argc, char *argv[]) {
             sequence_counter++;
         }
         outfile.close();
-
+        if (return_length && length_file.is_open()) {
+            length_file.close();
+        }
         std::cout << sequence_counter << " sequences processed \n";
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
