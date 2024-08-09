@@ -53,11 +53,12 @@ int main(int argc, char *argv[]) {
         }
         unsigned int min_length = (argc > 3) ? std::stoi(argv[3]) : 0;
         bool return_length = 0;
-        std::ofstream length_file(dir +"/contig_length");
+        std::ofstream length_file;
         for (int i = 1; i < argc; ++i) {
             std::string arg = argv[i];
             if (arg == "-l" && i  < argc) {
                 return_length = 1;
+                length_file.open(dir +"/contig_length");
             }
         }
         std::ifstream fasta(contigs_sequences);
