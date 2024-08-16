@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 
     if(argc < 3 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
     {
-        std::cout << "Usage: convertfasta_multi2single input.fasta outdir min_length (optional, int) -l (print length, optional) \n";
+        std::cout << "Usage: convertfasta_multi2single input.fasta outdir min_length (optional, int) --length (print length, optional) \n";
         return EXIT_SUCCESS;
     }
     
@@ -51,14 +51,14 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
         }
-        unsigned int min_length = (argc > 3) ? std::stoi(argv[3]) : 0;
+        unsigned int min_length = 0;
         bool return_length = 0;
         std::ofstream length_file;
-        for (int i = 1; i < argc; ++i) {
-            std::string arg = argv[i];
-            if (arg == "-l" && i  < argc) {
-                return_length = 1;
-                length_file.open(dir +"/contig_length");
+        for (int i = 3; i < argc; ++i) {
+            if (strcmp(argv[i], "--length") == 0) {
+                return_length = true;
+            } else {
+                min_length = std::stoi(argv[i]);
             }
         }
         std::ifstream fasta(contigs_sequences);
